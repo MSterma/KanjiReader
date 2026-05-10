@@ -1,0 +1,13 @@
+# TODO
+- Obsługa obrotu ekranu ( aktualnie lista znaków znika)
+- Obsługa błędów ML Kita (jak za dużo się dzieję na zdjęciu to potrafi zwrócić pustą lis†ę) 
+- ML kit czaasmi rozbija złożone znaki na 2 różne. Można by coś z tym zrobić, ale ma to bardzo niski priorytet
+- Poza bazą kanji, dodać bazę notek użytkownika (użytkownik do każdego znaku może dodać  notatkę, oraz zdanie, z którego pochodzi tekst)
+- Dodać zewnętrzną bazę danych oraz system logowania w celu przechowywania notatek użytkownika na serwerze
+- Dodać ekran logowania
+- Dodać obsługę logowania
+- Dodać animację ładowania ( jak aplikacja się włącza lub czeka na dane)
+- Dodać ikonę aplikacji
+- Dodać nawigację (główny ekran ze scraperem, ustawienia, notatki użytkownika, przycisk wyloguj/zaloguj)
+- Dodać przechowywanie tekstów w XML'u
+- Dodać uwierzytelnienie biometrią (bardzo opcjonalne)
