@@ -10,6 +10,7 @@ import androidx.room.Room
 import com.example.kanjireader.ViewModel.KanjiViewModel
 import com.example.kanjireader.data.Repository.KanjiRepository
 import com.example.kanjireader.data.local.KanjiDatabase
+import com.example.kanjireader.data.local.UserDatabase
 import com.example.kanjireader.ui.screen.JapaneseTextExtractor
 import com.example.kanjireader.ui.theme.KanjiReaderTheme
 
@@ -22,13 +23,19 @@ class MainActivity : ComponentActivity() {
         "kanjidic.db"
         ).createFromAsset("database/kanjidic.db")
         .build()
+        val userDatabase = Room.databaseBuilder(
+            applicationContext,
+            UserDatabase::class.java,
+            "user_data.db"
+        ).build()
 
-        val repozytorium = KanjiRepository(database.kanjiDao())
+        val repository = KanjiRepository(kanjiDao = database.kanjiDao(),
+            userNoteDao = userDatabase.userNoteDao())
         setContent {
             KanjiReaderTheme {
                 val factory = object : ViewModelProvider.Factory {
                     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                        return KanjiViewModel(repozytorium) as T
+                        return KanjiViewModel(repository) as T
                     }
                 }
                 val viewModel: KanjiViewModel = viewModel(factory = factory)
