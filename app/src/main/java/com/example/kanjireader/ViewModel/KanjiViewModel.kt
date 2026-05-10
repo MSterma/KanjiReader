@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class KanjiViewModel(
-    private val repository: KanjiRepository
+    private val repository: KanjiRepository,
 ) : ViewModel() {
 
     private val _charList = MutableStateFlow<List<Char>>(emptyList())
@@ -34,6 +34,18 @@ class KanjiViewModel(
         viewModelScope.launch {
             repository.saveNote(character, note)
             _selectedData.value = repository.getFullKanjiDetails(character.first())
+        }
+    }
+    fun syncData() {
+        viewModelScope.launch {
+            repository.syncNotes()
+        }
+    }
+    fun logout(onLogoutComplete: () -> Unit) {
+        viewModelScope.launch {
+            repository.logoutUser()
+            _selectedData.value = null
+            onLogoutComplete()
         }
     }
 }
