@@ -1,11 +1,16 @@
 package com.example.kanjireader.ui.components
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.kanjireader.ViewModel.KanjiViewModel
 import com.example.kanjireader.ui.screen.JapaneseTextExtractor
@@ -21,7 +26,17 @@ fun AppNavigation(
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var currentScreen by remember { mutableStateOf("extractor") }
+    var currentScreen by rememberSaveable { mutableStateOf("extractor") }
+
+    val popupMessage by viewModel.popupMessage.collectAsState()
+
+    BackHandler(enabled = currentScreen != "extractor") {
+        if (currentScreen == "detail") {
+            currentScreen = "notes"
+        } else if (currentScreen == "notes") {
+            currentScreen = "extractor"
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -32,11 +47,11 @@ fun AppNavigation(
                     modifier = Modifier.padding(24.dp),
                     style = MaterialTheme.typography.headlineSmall
                 )
-                Divider()
+                HorizontalDivider()
                 Spacer(modifier = Modifier.height(8.dp))
 
                 NavigationDrawerItem(
-                    label = { Text("Tekst Extractor") },
+                    label = { Text("Skaner Tekst") },
                     selected = currentScreen == "extractor",
                     onClick = {
                         currentScreen = "extractor"
@@ -58,7 +73,7 @@ fun AppNavigation(
                 Spacer(modifier = Modifier.weight(1f))
 
                 NavigationDrawerItem(
-                    label = { Text("Wyloguj się") },
+                    label = { Text("Wylogować się") },
                     selected = false,
                     onClick = {
                         scope.launch {
@@ -93,7 +108,7 @@ fun AppNavigation(
                 )
             }
         ) { paddingValues ->
-            Box(modifier = Modifier.padding(paddingValues)) {
+            Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
                 when (currentScreen) {
                     "extractor" -> JapaneseTextExtractor(viewModel)
                     "notes" -> NotesSearchScreen(viewModel) { kanji ->
@@ -102,6 +117,32 @@ fun AppNavigation(
                     }
                     "detail" -> KanjiSingleDetailScreen(viewModel) {
                         currentScreen = "notes"
+                    }
+                }
+
+                AnimatedVisibility(
+                    visible = popupMessage != null,
+                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                        .padding(bottom = 16.dp)
+                ) {
+                    popupMessage?.let { msg ->
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (msg.isError) Color(0xFFD32F2F) else Color(0xFF388E3C),
+                                contentColor = Color.White
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                        ) {
+                            Text(
+                                text = msg.text,
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
                     }
                 }
             }

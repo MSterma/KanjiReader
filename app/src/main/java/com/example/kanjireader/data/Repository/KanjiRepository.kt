@@ -8,6 +8,9 @@ import com.example.kanjireader.data.local.UserNoteEntity
 import com.example.kanjireader.data.local.FoundSentenceEntity
 import com.example.kanjireader.data.local.NoteWithSentences
 import com.example.kanjireader.data.remote.AuthManager
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.tasks.await
 
 data class FullKanjiData(
@@ -94,34 +97,65 @@ class KanjiRepository (
         val matchingChars = kanjiDao.searchMatchingCharacters(query)
 
         return userNoteDao.searchNotesAdvanced(query, matchingChars)
-    }    suspend fun syncNotes()  {
+    }
+
+
+    suspend fun updateNoteWithSentence(character: String, note: String, sentenceToAdd: String?) {
+        userNoteDao.insertInitialNote(UserNoteEntity(character, ""))
+
+        userNoteDao.updateNote(character, note)
+
+        if (sentenceToAdd != null && sentenceToAdd.isNotBlank()) {
+            val currentData = userNoteDao.getNoteWithSentences(character)
+            val alreadyExists = currentData?.sentences?.any { it.sentence == sentenceToAdd } == true
+
+            if (!alreadyExists) {
+                userNoteDao.insertSentence(FoundSentenceEntity(characterOwner = character, sentence = sentenceToAdd))
+            }
+        }
+
         val uid = authManager.getUserId() ?: return
+        val docRef = firestore.collection("users").document(uid)
+            .collection("kanji_notes").document(character)
 
-        try {
-            val snapshot = firestore.collection("users").document(uid)
-                .collection("kanji_notes").get().await()
+        val updates = mutableMapOf<String, Any>("note" to note)
 
-            for (document in snapshot.documents) {
-                val character = document.id
-                val remoteNote = document.getString("note")
+        if (sentenceToAdd != null && sentenceToAdd.isNotBlank()) {
+            updates["sentences"] = FieldValue.arrayUnion(sentenceToAdd)
+        }
 
-                if (remoteNote != null) {
-                    userNoteDao.insertInitialNote(UserNoteEntity(character, ""))
-                    userNoteDao.updateNote(character, remoteNote)
-                }
+        docRef.set(updates, SetOptions.merge())
+    }
+
+    suspend fun syncNotes() {
+        val uid = authManager.getUserId() ?: throw Exception("Brak autoryzacja")
+
+        val snapshot = firestore.collection("users").document(uid)
+            .collection("kanji_notes").get(com.google.firebase.firestore.Source.SERVER).await()
+
+        val remoteMap = snapshot.documents.associateBy({ it.id }, { it.getString("note") ?: "" })
+        val localList = userNoteDao.getAllNotes()
+        val localMap = localList.associateBy({ it.character }, { it.note ?: "" })
+
+        for (local in localList) {
+            val remoteNote = remoteMap[local.character]
+            val localNoteText = local.note ?: ""
+
+            if (localNoteText.isNotEmpty() && localNoteText != remoteNote) {
+                val data = mapOf("note" to localNoteText)
+                firestore.collection("users").document(uid)
+                    .collection("kanji_notes").document(local.character)
+                    .set(data, com.google.firebase.firestore.SetOptions.merge())
+                    .await()
             }
+        }
 
-            val localNotes = userNoteDao.getAllNotes()
-            for (local in localNotes) {
-                if (local.note != null) {
-                    val remoteData = mapOf("note" to local.note)
-                    firestore.collection("users").document(uid)
-                        .collection("kanji_notes").document(local.character)
-                        .set(remoteData, com.google.firebase.firestore.SetOptions.merge())
-                }
+        for ((char, remoteNote) in remoteMap) {
+            val localNote = localMap[char]
+            if (localNote == null || (localNote.isEmpty() && remoteNote.isNotEmpty())) {
+                userNoteDao.insertInitialNote(UserNoteEntity(char, ""))
+                userNoteDao.updateNote(char, remoteNote)
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 }

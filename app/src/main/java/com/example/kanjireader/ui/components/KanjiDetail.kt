@@ -1,47 +1,80 @@
 package com.example.kanjireader.ui.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kanjireader.data.Repository.FullKanjiData
 
 @Composable
 fun KanjiDetail(data: FullKanjiData?, onEditClick: () -> Unit) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        if (data?.dictionaryInfo != null) {
-            val info = data.dictionaryInfo
+    if (data == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Wybierać znak lista")
+        }
+        return
+    }
 
-            Text(text = "Kanji:", fontWeight = FontWeight.Bold)
-            Text(text = info.character.toString(), fontSize = 48.sp)
+    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        item {
+            Text(
+                text = data.dictionaryInfo?.character?.toString() ?: "",
+                fontSize = 72.sp,
+                modifier = Modifier.fillMaxWidth().wrapContentWidth(Alignment.CenterHorizontally)
+            )
+        }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(text = "Meaning: ${info.meaning}")
-            Text(text = "Kun: ${info.kunyomi}")
-            Text(text = "On: ${info.onyomi}")
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-            Text(text = "My Notes:", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Text(text = data.userNotes?.userNote?.note ?: "No notes yet.")
-
-            Button(onClick = onEditClick, modifier = Modifier.padding(top = 8.dp)) {
-                Text("Edit Note")
-            }
-
+        item {
+            Text("Znaczenie: ${data.dictionaryInfo?.meaning}", style = MaterialTheme.typography.bodyLarge)
+            Text("Onyomi: ${data.dictionaryInfo?.onyomi}")
+            Text("Kunyomi: ${data.dictionaryInfo?.kunyomi}")
             Spacer(modifier = Modifier.height(16.dp))
+        }
 
-            Text(text = "Found in sentences:", fontWeight = FontWeight.Bold)
-            data.userNotes?.sentences?.forEach { sentence ->
-                Text(text = "• ${sentence.sentence}", fontSize = 14.sp)
+        item {
+            Text("Notatka:", style = MaterialTheme.typography.titleMedium)
+            Text(text = data.userNotes?.userNote?.note ?: "Brak notatki")
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        item {
+            Text("Wystąpienia (Found in sentences):", style = MaterialTheme.typography.titleMedium)
+        }
+
+        val sentences = data.userNotes?.sentences ?: emptyList()
+        if (sentences.isEmpty()) {
+            item {
+                Text("Nie znaleźć jeszcze zdania", style = MaterialTheme.typography.bodySmall)
             }
-
         } else {
-            Text("Select a character from the list")
+            items(sentences) { item ->
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Text(
+                        text = item.sentence,
+                        modifier = Modifier.padding(12.dp),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+
+        item {
+            Button(
+                onClick = onEditClick,
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+            ) {
+                Text("Edytować dane")
+            }
         }
     }
 }

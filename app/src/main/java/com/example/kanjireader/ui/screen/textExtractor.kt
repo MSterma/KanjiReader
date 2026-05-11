@@ -1,16 +1,20 @@
 package com.example.kanjireader.ui.screen
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.kanjireader.ViewModel.KanjiViewModel
@@ -20,8 +24,11 @@ import com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions
 
 @Composable
 fun JapaneseTextExtractor(viewModel: KanjiViewModel) {
-    var extractedText by remember { mutableStateOf("Brak tekst") }
+    var extractedText by rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
+
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val recognizer = remember {
         TextRecognition.getClient(JapaneseTextRecognizerOptions.Builder().build())
@@ -30,10 +37,16 @@ fun JapaneseTextExtractor(viewModel: KanjiViewModel) {
     fun processImage(image: InputImage) {
         recognizer.process(image)
             .addOnSuccessListener { visionText ->
-                extractedText = visionText.text.ifEmpty { "Nie znaleźć znaki" }
+                if (visionText.text.isBlank()) {
+                    viewModel.showMessage("Sorry, unable to retrieve any text from image", true)
+                } else {
+                    extractedText = visionText.text
+                    viewModel.showMessage("Skanowanie udane", false)
+                }
             }
             .addOnFailureListener { e ->
-                extractedText = "Błąd: ${e.message}"
+                extractedText = "Błąd"
+                viewModel.showMessage("Błąd odczyt: ${e.message}", true)
             }
     }
 
@@ -53,7 +66,7 @@ fun JapaneseTextExtractor(viewModel: KanjiViewModel) {
         }
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -72,8 +85,65 @@ fun JapaneseTextExtractor(viewModel: KanjiViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SelectionContainer {
-           KanjiListDetailScreen(viewModel = viewModel,extractedText)
+        if (isLandscape) {
+            Row(modifier = Modifier.fillMaxSize()) {
+                Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                    KanjiListDetailScreen(viewModel = viewModel, wejscieTekst = extractedText)
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                    if (extractedText.isNotBlank()) {
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp).verticalScroll(rememberScrollState())) {
+                                Text(
+                                    text = "Tekst ze zdjęcia:",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                SelectionContainer {
+                                    Text(
+                                        text = extractedText,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            if (extractedText.isNotBlank()) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp).padding(bottom = 16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp).verticalScroll(rememberScrollState())) {
+                        Text(
+                            text = "Tekst ze zdjęcia:",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        SelectionContainer {
+                            Text(
+                                text = extractedText,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                }
+            }
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                KanjiListDetailScreen(viewModel = viewModel, wejscieTekst = extractedText)
+            }
         }
     }
 }
