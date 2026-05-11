@@ -2,7 +2,7 @@
 ## Wymagane
 - Dodać animację ładowania ( jak aplikacja się włącza lub czeka na dane)
 - Dodać ikonę aplikacji
-- Dodać tłumaczenia z deepL (chyba za są 2 punkty)
+- Dodać tłumaczenia z deepL (chyba za to są 2 punkty)
 
 
 ## Opcjonalne/mało ważne
