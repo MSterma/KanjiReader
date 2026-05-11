@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kanjireader.data.Repository.FullKanjiData
 import com.example.kanjireader.data.Repository.KanjiRepository
+import com.example.kanjireader.data.local.UserNoteEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +20,8 @@ class KanjiViewModel(
 
     private val _selectedData = MutableStateFlow<FullKanjiData?>(null)
     val selectedData: StateFlow<FullKanjiData?> = _selectedData.asStateFlow()
-
+    private val _userNotes = MutableStateFlow<List<UserNoteEntity>>(emptyList())
+    val userNotes: StateFlow<List<UserNoteEntity>> = _userNotes.asStateFlow()
     fun processText(text: String) {
         _charList.value = repository.getKanji(text)
     }
@@ -46,6 +48,20 @@ class KanjiViewModel(
             repository.logoutUser()
             _selectedData.value = null
             onLogoutComplete()
+        }
+    }
+
+
+
+    fun loadAllNotes() {
+        viewModelScope.launch {
+            _userNotes.value = repository.getAllUserNotes()
+        }
+    }
+
+    fun searchNotes(query: String) {
+        viewModelScope.launch {
+            _userNotes.value = repository.searchUserNotes(query)
         }
     }
 }

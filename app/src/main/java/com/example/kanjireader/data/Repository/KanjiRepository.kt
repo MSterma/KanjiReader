@@ -84,7 +84,17 @@ class KanjiRepository (
             .addOnSuccessListener { docs ->
             }
     }
-    suspend fun syncNotes() {
+    suspend fun getAllUserNotes(): List<UserNoteEntity> = userNoteDao.getAllNotes()
+
+    suspend fun searchUserNotes(query: String): List<UserNoteEntity> {
+        if (query.isBlank()) {
+            return userNoteDao.getAllNotes()
+        }
+
+        val matchingChars = kanjiDao.searchMatchingCharacters(query)
+
+        return userNoteDao.searchNotesAdvanced(query, matchingChars)
+    }    suspend fun syncNotes()  {
         val uid = authManager.getUserId() ?: return
 
         try {

@@ -28,4 +28,15 @@ interface UserNoteDao {
     @Transaction
     @Query("SELECT * FROM user_notes WHERE character = :targetCharacter LIMIT 1")
     suspend fun getNoteWithSentences(targetCharacter: String): NoteWithSentences?
+
+    @Query("SELECT * FROM user_notes WHERE note LIKE '%' || :query || '%'")
+    suspend fun searchNotes(query: String): List<UserNoteEntity>
+
+    @Query("""
+    SELECT * FROM user_notes 
+    WHERE note LIKE '%' || :query || '%' 
+    OR character LIKE '%' || :query || '%' 
+    OR character IN (:matchingChars)
+""")
+    suspend fun searchNotesAdvanced(query: String, matchingChars: List<String>): List<UserNoteEntity>
 }

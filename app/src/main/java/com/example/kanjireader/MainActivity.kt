@@ -17,6 +17,7 @@ import com.example.kanjireader.data.Repository.KanjiRepository
 import com.example.kanjireader.data.local.KanjiDatabase
 import com.example.kanjireader.data.local.UserDatabase
 import com.example.kanjireader.data.remote.AuthManager
+import com.example.kanjireader.ui.components.AppNavigation
 import com.example.kanjireader.ui.screen.JapaneseTextExtractor
 import com.example.kanjireader.ui.screen.LoginScreen
 import com.example.kanjireader.ui.theme.KanjiReaderTheme
@@ -43,9 +44,7 @@ class MainActivity : ComponentActivity() {
             userNoteDao = userDatabase.userNoteDao(), authManager=authManager, firestore = firestore)
         setContent {
             KanjiReaderTheme {
-                var isLoggedIn by remember {
-                    mutableStateOf(authManager.getUserId() != null)
-                }
+                var isLoggedIn by remember { mutableStateOf(authManager.getUserId() != null) }
 
                 if (isLoggedIn) {
                     val factory = object : ViewModelProvider.Factory {
@@ -55,11 +54,15 @@ class MainActivity : ComponentActivity() {
                     }
                     val viewModel: KanjiViewModel = viewModel(factory = factory)
 
-                    LaunchedEffect(Unit) {
-                        viewModel.syncData()
-                    }
-
-                    JapaneseTextExtractor(viewModel)
+                    LaunchedEffect(Unit) { viewModel.syncData() }
+                    AppNavigation(
+                        viewModel = viewModel,
+                        onLogout = {
+                            viewModel.logout {
+                                isLoggedIn = false
+                            }
+                        }
+                    )
                 } else {
                     LoginScreen(
                         authManager = authManager,
