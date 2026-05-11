@@ -1,9 +1,9 @@
 # TODO
 ## Wymagane
-- Obsługa obrotu ekranu ( aktualnie lista znaków znika)
-- Obsługa błędów ML Kita (jak za dużo się dzieję na zdjęciu to potrafi zwrócić pustą lis†ę) 
 - Dodać animację ładowania ( jak aplikacja się włącza lub czeka na dane)
 - Dodać ikonę aplikacji
+- Dodać tłumaczenia z deepL (chyba za są 2 punkty)
+
 
 ## Opcjonalne/mało ważne
 - Dodać przechowywanie tekstów w XML'u
