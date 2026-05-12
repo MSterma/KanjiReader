@@ -31,7 +31,7 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = if (isRegisterMode) "Rejestracja Kanjireader" else "Logowanie Kanjireader",
+                text = if (isRegisterMode) "Register" else "Log in",
                 style = MaterialTheme.typography.headlineMedium
             )
 
@@ -49,7 +49,7 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
             TextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Hasło") },
+                label = { Text("Password") },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -68,7 +68,7 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
                             } else if (exception is FirebaseNetworkException || exception?.message?.contains("network", true) == true) {
                                 viewModel.showMessage("Could not connect to server", true)
                             } else {
-                                errorMessage = "Błąd rejestracja. Hasło musieć mieć 6 znak minimum."
+                                errorMessage = "Error: Password should be at least 6 characters long."
                             }
                         }
                     } else {
@@ -78,14 +78,14 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
                             } else if (exception is FirebaseNetworkException || exception?.message?.contains("network", true) == true) {
                                 viewModel.showMessage("Could not connect to server", true)
                             } else {
-                                errorMessage = "Błędny email lub hasło"
+                                errorMessage = "Invalid e-mail or password"
                             }
                         }
                     }
                 },
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
             ) {
-                Text(if (isRegisterMode) "Zarejestruj" else "Zaloguj")
+                Text(if (isRegisterMode) "Register" else "Log in")
             }
 
             TextButton(
@@ -95,7 +95,7 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
                 },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
             ) {
-                Text(if (isRegisterMode) "Masz już konto? Zaloguj się" else "Nie masz konta? Zarejestruj się")
+                Text(if (isRegisterMode) "Already registered?" else "Register")
             }
         }
 

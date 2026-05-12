@@ -25,14 +25,14 @@ fun KanjiNoteEditor(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(text = "Edytować notatka", style = MaterialTheme.typography.headlineSmall)
+        Text(text = "Edit", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = text,
             onValueChange = { text = it },
             modifier = Modifier.fillMaxWidth().height(150.dp),
-            label = { Text("Twoja notatka") }
+            label = { Text("Your note") }
         )
 
         if (currentSentence.isNotBlank()) {
@@ -44,7 +44,7 @@ fun KanjiNoteEditor(
                     checked = includeSentence,
                     onCheckedChange = { includeSentence = it }
                 )
-                Text("Zapisać skojarzone zdanie", style = MaterialTheme.typography.bodyMedium)
+                Text("Save sentence", style = MaterialTheme.typography.bodyMedium)
             }
             Text(
                 text = currentSentence,
@@ -59,10 +59,10 @@ fun KanjiNoteEditor(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Button(onClick = { onSave(text, includeSentence) }) {
-                Text("Zapis")
+                Text("Save")
             }
             OutlinedButton(onClick = onCancel) {
-                Text("Anuluj")
+                Text("Cancel")
             }
         }
     }

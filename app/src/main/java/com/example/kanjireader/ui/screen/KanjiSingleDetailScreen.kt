@@ -1,4 +1,3 @@
-// KanjiSingleDetailScreen.kt
 package com.example.kanjireader.ui.screen
 
 import android.content.res.Configuration
@@ -16,20 +15,12 @@ import com.example.kanjireader.ui.components.KanjiNoteEditor
 @Composable
 fun KanjiSingleDetailScreen(viewModel: KanjiViewModel, onBackClick: () -> Unit) {
     val selectedData by viewModel.selectedData.collectAsState()
-    val currentSentence by viewModel.fullText.collectAsState()
     var isEditing by rememberSaveable { mutableStateOf(false) }
 
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TextButton(
-            onClick = onBackClick,
-            modifier = Modifier.padding(start = 8.dp, top = 8.dp)
-        ) {
-            Text("< Wracać")
-        }
-
         if (isLandscape) {
             Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 Box(modifier = Modifier.weight(1f)) {
@@ -42,12 +33,12 @@ fun KanjiSingleDetailScreen(viewModel: KanjiViewModel, onBackClick: () -> Unit) 
                     Box(modifier = Modifier.weight(1f)) {
                         KanjiNoteEditor(
                             initialNote = selectedData?.userNotes?.userNote?.note ?: "",
-                            currentSentence = currentSentence,
-                            onSave = { newNote, includeSentence ->
+                            currentSentence = "",
+                            onSave = { newNote, _ ->
                                 viewModel.saveNoteWithSentence(
                                     character = selectedData!!.dictionaryInfo!!.character.toString(),
                                     note = newNote,
-                                    includeSentence = includeSentence
+                                    includeSentence = false
                                 )
                                 isEditing = false
                             },
@@ -61,12 +52,12 @@ fun KanjiSingleDetailScreen(viewModel: KanjiViewModel, onBackClick: () -> Unit) 
                 if (isEditing && selectedData != null) {
                     KanjiNoteEditor(
                         initialNote = selectedData?.userNotes?.userNote?.note ?: "",
-                        currentSentence = currentSentence,
-                        onSave = { newNote, includeSentence ->
+                        currentSentence = "",
+                        onSave = { newNote, _ ->
                             viewModel.saveNoteWithSentence(
                                 character = selectedData!!.dictionaryInfo!!.character.toString(),
                                 note = newNote,
-                                includeSentence = includeSentence
+                                includeSentence = false
                             )
                             isEditing = false
                         },

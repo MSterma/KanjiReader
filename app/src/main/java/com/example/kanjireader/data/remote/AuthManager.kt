@@ -5,7 +5,7 @@ class AuthManager {
 
     fun signIn(email: String, pass: String, onResult: (Boolean, Exception?) -> Unit) {
         if (email.isBlank() || pass.isBlank()) {
-            onResult(false, Exception("Puste pola"))
+            onResult(false, Exception("Empty fields"))
             return
         }
         auth.signInWithEmailAndPassword(email, pass)
@@ -14,7 +14,7 @@ class AuthManager {
 
     fun signUp(email: String, pass: String, onResult: (Boolean, Exception?) -> Unit) {
         if (email.isBlank() || pass.isBlank()) {
-            onResult(false, Exception("Brak dane"))
+            onResult(false, Exception("No data"))
             return
         }
         auth.createUserWithEmailAndPassword(email, pass)

@@ -41,12 +41,12 @@ fun JapaneseTextExtractor(viewModel: KanjiViewModel) {
                     viewModel.showMessage("Sorry, unable to retrieve any text from image", true)
                 } else {
                     extractedText = visionText.text
-                    viewModel.showMessage("Skanowanie udane", false)
+                    viewModel.showMessage("Complete", false)
                 }
             }
             .addOnFailureListener { e ->
-                extractedText = "Błąd"
-                viewModel.showMessage("Błąd odczyt: ${e.message}", true)
+                extractedText = "Error"
+                viewModel.showMessage("Error: ${e.message}", true)
             }
     }
 
@@ -72,14 +72,14 @@ fun JapaneseTextExtractor(viewModel: KanjiViewModel) {
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Button(onClick = { cameraLauncher.launch(null) }) {
-                Text("Zrobić zdjęcie")
+                Text("Take a picture")
             }
             Button(onClick = {
                 galleryLauncher.launch(
                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                 )
             }) {
-                Text("Wybrać galeria")
+                Text("Choose from gallery")
             }
         }
 
@@ -101,7 +101,7 @@ fun JapaneseTextExtractor(viewModel: KanjiViewModel) {
                         ) {
                             Column(modifier = Modifier.padding(12.dp).verticalScroll(rememberScrollState())) {
                                 Text(
-                                    text = "Tekst ze zdjęcia:",
+                                    text = "Retrieved text:",
                                     style = MaterialTheme.typography.labelLarge,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -127,7 +127,7 @@ fun JapaneseTextExtractor(viewModel: KanjiViewModel) {
                 ) {
                     Column(modifier = Modifier.padding(12.dp).verticalScroll(rememberScrollState())) {
                         Text(
-                            text = "Tekst ze zdjęcia:",
+                            text = "Retrieved text:",
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary
                         )

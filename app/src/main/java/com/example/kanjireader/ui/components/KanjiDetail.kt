@@ -15,7 +15,7 @@ import com.example.kanjireader.data.Repository.FullKanjiData
 fun KanjiDetail(data: FullKanjiData?, onEditClick: () -> Unit) {
     if (data == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Wybierać znak lista")
+            Text("Choose from  character from list")
         }
         return
     }
@@ -30,7 +30,7 @@ fun KanjiDetail(data: FullKanjiData?, onEditClick: () -> Unit) {
         }
 
         item {
-            Text("Znaczenie: ${data.dictionaryInfo?.meaning}", style = MaterialTheme.typography.bodyLarge)
+            Text("Meaning: ${data.dictionaryInfo?.meaning}", style = MaterialTheme.typography.bodyLarge)
             Text("Onyomi: ${data.dictionaryInfo?.onyomi}")
             Text("Kunyomi: ${data.dictionaryInfo?.kunyomi}")
             Spacer(modifier = Modifier.height(16.dp))
@@ -38,18 +38,18 @@ fun KanjiDetail(data: FullKanjiData?, onEditClick: () -> Unit) {
 
         item {
             Text("Notatka:", style = MaterialTheme.typography.titleMedium)
-            Text(text = data.userNotes?.userNote?.note ?: "Brak notatki")
+            Text(text = data.userNotes?.userNote?.note ?: "No notes")
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         item {
-            Text("Wystąpienia (Found in sentences):", style = MaterialTheme.typography.titleMedium)
+            Text("Found in sentences:", style = MaterialTheme.typography.titleMedium)
         }
 
         val sentences = data.userNotes?.sentences ?: emptyList()
         if (sentences.isEmpty()) {
             item {
-                Text("Nie znaleźć jeszcze zdania", style = MaterialTheme.typography.bodySmall)
+                Text("You have not added sentence to this kanji yet", style = MaterialTheme.typography.bodySmall)
             }
         } else {
             items(sentences) { item ->
@@ -73,7 +73,7 @@ fun KanjiDetail(data: FullKanjiData?, onEditClick: () -> Unit) {
                 onClick = onEditClick,
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
             ) {
-                Text("Edytować dane")
+                Text("Edit")
             }
         }
     }

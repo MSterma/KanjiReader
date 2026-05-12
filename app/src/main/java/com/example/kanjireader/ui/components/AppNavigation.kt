@@ -51,7 +51,7 @@ fun AppNavigation(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 NavigationDrawerItem(
-                    label = { Text("Skaner Tekst") },
+                    label = { Text("Text scanner") },
                     selected = currentScreen == "extractor",
                     onClick = {
                         currentScreen = "extractor"
@@ -61,7 +61,7 @@ fun AppNavigation(
                 )
 
                 NavigationDrawerItem(
-                    label = { Text("Moje Notatki") },
+                    label = { Text("My notes") },
                     selected = currentScreen == "notes",
                     onClick = {
                         currentScreen = "notes"
@@ -73,7 +73,7 @@ fun AppNavigation(
                 Spacer(modifier = Modifier.weight(1f))
 
                 NavigationDrawerItem(
-                    label = { Text("Wylogować się") },
+                    label = { Text("Log out") },
                     selected = false,
                     onClick = {
                         scope.launch {
@@ -93,9 +93,9 @@ fun AppNavigation(
                     title = {
                         Text(
                             when (currentScreen) {
-                                "extractor" -> "Skaner Kanji"
-                                "notes" -> "Wyszukiwarka"
-                                "detail" -> "Detale Kanji"
+                                "extractor" -> "Kanji Scanner"
+                                "notes" -> "My notes"
+                                "detail" -> "Kanji details"
                                 else -> "KanjiReader"
                             }
                         )
