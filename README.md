@@ -1,9 +1,8 @@
 # TODO
 ## Wymagane
-- Dodać animację ładowania ( jak aplikacja się włącza lub czeka na dane)
+- Dodać animację ładowania ( jak aplikacja się włącza, użytkownik się loguje lub appka czeka na dane)
 - Dodać ikonę aplikacji
 - Dodać tłumaczenia z deepL (chyba za to są 2 punkty)
-- Poprawić napisy 
 
 ## Opcjonalne/mało ważne
 - Dodać przechowywanie tekstów w XML'u
