@@ -14,11 +14,13 @@ class AuthManager {
 
     fun signUp(email: String, pass: String, onResult: (Boolean, Exception?) -> Unit) {
         if (email.isBlank() || pass.isBlank()) {
-            onResult(false, Exception("No data"))
+            onResult(false, Exception("Empty fields"))
             return
         }
         auth.createUserWithEmailAndPassword(email, pass)
-            .addOnCompleteListener { task -> onResult(task.isSuccessful, task.exception) }
+            .addOnCompleteListener { task ->
+                onResult(task.isSuccessful, task.exception)
+            }
     }
 
     fun signOut() {

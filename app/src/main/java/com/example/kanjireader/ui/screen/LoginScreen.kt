@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kanjireader.ViewModel.KanjiViewModel
 import com.example.kanjireader.data.remote.AuthManager
 import com.google.firebase.FirebaseNetworkException
+import kotlinx.coroutines.delay
 
 @Composable
 fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSuccess: () -> Unit) {
@@ -64,6 +65,7 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
                     if (isRegisterMode) {
                         authManager.signUp(email, password) { success, exception ->
                             if (success) {
+                                viewModel.showMessage("Account created successfully", false)
                                 onLoginSuccess()
                             } else if (exception is FirebaseNetworkException || exception?.message?.contains("network", true) == true) {
                                 viewModel.showMessage("Could not connect to server", true)
@@ -74,6 +76,7 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
                     } else {
                         authManager.signIn(email, password) { success, exception ->
                             if (success) {
+                                viewModel.showMessage("Logged in successfully", false)
                                 onLoginSuccess()
                             } else if (exception is FirebaseNetworkException || exception?.message?.contains("network", true) == true) {
                                 viewModel.showMessage("Could not connect to server", true)
