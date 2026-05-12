@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import com.example.kanjireader.ViewModel.KanjiViewModel
 import com.example.kanjireader.data.remote.AuthManager
 import com.google.firebase.FirebaseNetworkException
-import kotlinx.coroutines.delay
 
 @Composable
 fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSuccess: () -> Unit) {
@@ -70,7 +69,12 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
                             } else if (exception is FirebaseNetworkException || exception?.message?.contains("network", true) == true) {
                                 viewModel.showMessage("Could not connect to server", true)
                             } else {
-                                errorMessage = "Error: Password should be at least 6 characters long."
+                                val errorMsg = exception?.message ?: ""
+                                if (errorMsg.contains("email", ignoreCase = true) || errorMsg.contains("format", ignoreCase = true) || errorMsg.contains("empty", ignoreCase = true)) {
+                                    errorMessage = "Invalid email"
+                                } else {
+                                    errorMessage = "Error: Password should be at least 6 characters long."
+                                }
                             }
                         }
                     } else {
