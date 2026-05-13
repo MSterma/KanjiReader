@@ -2,6 +2,7 @@ package com.example.kanjireader.ui.components
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -11,7 +12,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.kanjireader.R
 import com.example.kanjireader.ViewModel.KanjiViewModel
 import com.example.kanjireader.ui.screen.JapaneseTextExtractor
 import com.example.kanjireader.ui.screen.NotesSearchScreen
@@ -104,6 +107,16 @@ fun AppNavigation(
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = null)
                         }
+                    },
+                    actions = {
+                        // Gojmini dodawać ikonę tutaj
+                        Image(
+                            painter = painterResource(id = R.drawable.appicon),
+                            contentDescription = "App Icon",
+                            modifier = Modifier
+                                .size(60.dp)
+                                .padding(end = 8.dp)
+                        )
                     }
                 )
             }

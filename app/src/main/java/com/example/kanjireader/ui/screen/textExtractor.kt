@@ -14,6 +14,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -71,15 +73,23 @@ fun JapaneseTextExtractor(viewModel: KanjiViewModel) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Button(onClick = { cameraLauncher.launch(null) }) {
-                Text("Take a picture")
+            Button(
+                onClick = { cameraLauncher.launch(null) },
+                shape = RectangleShape,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4777))
+            ) {
+                Text("Take a picture", color = Color.White)
             }
-            Button(onClick = {
-                galleryLauncher.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                )
-            }) {
-                Text("Choose from gallery")
+            Button(
+                onClick = {
+                    galleryLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                },
+                shape = RectangleShape,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4777))
+            ) {
+                Text("Choose from gallery", color = Color.White)
             }
         }
 
@@ -95,15 +105,15 @@ fun JapaneseTextExtractor(viewModel: KanjiViewModel) {
                     if (extractedText.isNotBlank()) {
                         Card(
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                                contentColor = MaterialTheme.colorScheme.onSecondary
                             ),
                             modifier = Modifier.fillMaxSize()
                         ) {
                             Column(modifier = Modifier.padding(12.dp).verticalScroll(rememberScrollState())) {
                                 Text(
                                     text = "Retrieved text:",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.primary
+                                    style = MaterialTheme.typography.labelLarge
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 SelectionContainer {
@@ -121,15 +131,15 @@ fun JapaneseTextExtractor(viewModel: KanjiViewModel) {
             if (extractedText.isNotBlank()) {
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.onSecondary
                     ),
                     modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp).padding(bottom = 16.dp)
                 ) {
                     Column(modifier = Modifier.padding(12.dp).verticalScroll(rememberScrollState())) {
                         Text(
                             text = "Retrieved text:",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
+                            style = MaterialTheme.typography.labelLarge
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         SelectionContainer {

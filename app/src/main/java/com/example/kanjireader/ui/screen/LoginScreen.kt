@@ -2,6 +2,7 @@ package com.example.kanjireader.ui.screen
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,11 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.kanjireader.R // Upewnij się, że importujesz właściwe R
+import com.example.kanjireader.R
 import com.example.kanjireader.ViewModel.KanjiViewModel
 import com.example.kanjireader.data.remote.AuthManager
 import com.google.firebase.FirebaseNetworkException
@@ -30,34 +33,56 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
     var password by rememberSaveable { mutableStateOf("") }
     var errorMessage by rememberSaveable { mutableStateOf<String?>(null) }
     var isRegisterMode by rememberSaveable { mutableStateOf(false) }
-
-    // Nowy stan ładowania
     var isLoading by rememberSaveable { mutableStateOf(false) }
 
     val popupMessage by viewModel.popupMessage.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // GŁÓWNY CONTENT
+    val bgColor = Color(0xFF12151E)
+    val fieldColor = Color(0xFF1E2433)
+    val textColor = Color.White
+    val labelColor = Color.LightGray
+    val accentColor = Color(0xFF1D4777)
+
+    Box(modifier = Modifier.fillMaxSize().background(bgColor)) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.Center
         ) {
+            Image(
+                painter = painterResource(id = R.drawable.appicon),
+                contentDescription = "App Logo",
+                modifier = Modifier
+                    .size(180.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 24.dp)
+            )
+
             Text(
                 text = if (isRegisterMode) "Register" else "Log in",
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
+                color = textColor
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            val textFieldColors = TextFieldDefaults.colors(
+                focusedTextColor = textColor,
+                unfocusedTextColor = textColor,
+                focusedContainerColor = fieldColor,
+                unfocusedContainerColor = fieldColor,
+                focusedLabelColor = labelColor,
+                unfocusedLabelColor = labelColor,
+                cursorColor = textColor
+            )
 
             TextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoading // Blokujemy pola podczas ładowania
+                enabled = !isLoading,
+                colors = textFieldColors
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -68,22 +93,24 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
                 label = { Text("Password") },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoading
+                enabled = !isLoading,
+                colors = textFieldColors
             )
 
             errorMessage?.let {
                 Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
             }
 
+            // GŁÓWNY PRZYCISK (Solidny prostokąt)
             Button(
                 onClick = {
                     keyboardController?.hide()
-                    isLoading = true // Start ładowania
+                    isLoading = true
                     errorMessage = null
 
                     if (isRegisterMode) {
                         authManager.signUp(email, password) { success, exception ->
-                            isLoading = false // Koniec ładowania
+                            isLoading = false
                             if (success) {
                                 viewModel.showMessage("Account created successfully", false)
                                 onLoginSuccess()
@@ -100,7 +127,7 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
                         }
                     } else {
                         authManager.signIn(email, password) { success, exception ->
-                            isLoading = false // Koniec ładowania
+                            isLoading = false
                             if (success) {
                                 viewModel.showMessage("Logged in successfully", false)
                                 onLoginSuccess()
@@ -113,36 +140,45 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
                     }
                 },
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                enabled = !isLoading // Blokujemy przycisk
+                enabled = !isLoading,
+                shape = RectangleShape,
+                colors = ButtonDefaults.buttonColors(containerColor = accentColor)
             ) {
-                Text(if (isRegisterMode) "Register" else "Log in")
+                Text(if (isRegisterMode) "Register" else "Log in", color = Color.White)
             }
 
-            TextButton(
+            // PRZYCISK PRZEŁĄCZANIA / REGISTER (Z obramowaniem i prostokątny)
+            OutlinedButton(
                 onClick = {
                     isRegisterMode = !isRegisterMode
                     errorMessage = null
                 },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                enabled = !isLoading
+                enabled = !isLoading,
+                shape = RectangleShape,
+                border = BorderStroke(1.dp, accentColor),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = bgColor,
+                    contentColor = textColor
+                )
             ) {
-                Text(if (isRegisterMode) "Already registered?" else "Register")
+                Text(if (isRegisterMode) "Already registered? Log in" else "Register")
             }
         }
 
-        // --- CUSTOM LOADING OVERLAY ---
+        // Animacja ładowania
         if (isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.7f)) // Wyszarzenie
-                    .clickable(enabled = false) { } // Blokowanie dotyku
+                    .background(Color.Black.copy(alpha = 0.7f))
+                    .clickable(enabled = false) { }
             ) {
                 ScannerLoadingAnimation(modifier = Modifier.align(Alignment.Center))
             }
         }
 
-        // POPUP (Zawsze na górze)
+        // Popupy
         AnimatedVisibility(
             visible = popupMessage != null,
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -175,8 +211,6 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
 @Composable
 fun ScannerLoadingAnimation(modifier: Modifier = Modifier) {
     val infiniteTransition = rememberInfiniteTransition(label = "scanner")
-
-    // Animacja ruchu linii skanującej (od góry do dołu)
     val scanProgress by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
@@ -186,8 +220,6 @@ fun ScannerLoadingAnimation(modifier: Modifier = Modifier) {
         ),
         label = "line"
     )
-
-    // Animacja pulsowania logo
     val scale by infiniteTransition.animateFloat(
         initialValue = 0.95f,
         targetValue = 1.05f,
@@ -198,54 +230,35 @@ fun ScannerLoadingAnimation(modifier: Modifier = Modifier) {
         label = "pulse"
     )
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-    ) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
         Box(
             modifier = Modifier
                 .size(150.dp)
+                .graphicsLayer(scaleX = scale, scaleY = scale)
                 .clip(RoundedCornerShape(24.dp))
+                .background(Color.White.copy(alpha = 0.1f))
         ) {
-            // LOGO (Pulsowanie)
             Image(
-                painter = painterResource(id = R.drawable.appicon ), // Upewnij się, że nazwa pliku się zgadza
+                painter = painterResource(id = R.drawable.appicon),
                 contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(10.dp)
+                modifier = Modifier.fillMaxSize().padding(16.dp)
             )
-
-            // LINIA SKANUJĄCA
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.05f)
-                    .offset(y = (150.dp * scanProgress)) // Linia się przesuwa
+                    .fillMaxHeight(0.08f)
+                    .offset(y = (150.dp * scanProgress) - (150.dp * 0.04f))
                     .background(
                         brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.White.copy(alpha = 0.8f),
-                                Color.Transparent
-                            )
+                            colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.9f), Color.Transparent)
                         )
                     )
             )
         }
-
         Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Authenticating...",
-            color = Color.White,
-            style = MaterialTheme.typography.titleMedium
-        )
-
+        Text("Authenticating...", color = Color.White, style = MaterialTheme.typography.titleMedium)
         LinearProgressIndicator(
-            modifier = Modifier
-                .padding(top = 16.dp)
-                .width(100.dp),
+            modifier = Modifier.padding(top = 16.dp).width(120.dp).clip(RoundedCornerShape(4.dp)),
             color = Color.White,
             trackColor = Color.White.copy(alpha = 0.2f)
         )

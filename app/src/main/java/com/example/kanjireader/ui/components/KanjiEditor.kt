@@ -1,5 +1,6 @@
 package com.example.kanjireader.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -8,6 +9,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -58,10 +61,19 @@ fun KanjiNoteEditor(
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Button(onClick = { onSave(text, includeSentence) }) {
-                Text("Save")
+            Button(
+                onClick = { onSave(text, includeSentence) },
+                shape = RectangleShape,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4777))
+            ) {
+                Text("Save", color = Color.White)
             }
-            OutlinedButton(onClick = onCancel) {
+            OutlinedButton(
+                onClick = onCancel,
+                shape = RectangleShape,
+                border = BorderStroke(1.dp, Color(0xFF1D4777)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1D4777))
+            ) {
                 Text("Cancel")
             }
         }
