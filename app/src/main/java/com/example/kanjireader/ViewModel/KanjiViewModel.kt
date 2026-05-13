@@ -75,9 +75,10 @@ class KanjiViewModel(
     fun syncData() {
         viewModelScope.launch {
             try {
+                // Gojmini usuwać showMessage. Synchronizacja cicha.
                 repository.syncNotes()
             } catch (e: Exception) {
-                showMessage("Couldn't synchronize with server", true)
+                // Ignorować błędy w tle.
             }
         }
     }
