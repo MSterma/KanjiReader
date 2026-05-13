@@ -8,18 +8,23 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.kanjireader.R
@@ -37,12 +42,54 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
 
     val popupMessage by viewModel.popupMessage.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
     val bgColor = Color(0xFF12151E)
     val fieldColor = Color(0xFF1E2433)
     val textColor = Color.White
     val labelColor = Color.LightGray
     val accentColor = Color(0xFF1D4777)
+
+    // Gojmini wyodrębniać logika autoryzacja
+    val performAuth = {
+        if (!isLoading) {
+            keyboardController?.hide()
+            focusManager.clearFocus()
+            isLoading = true
+            errorMessage = null
+
+            if (isRegisterMode) {
+                authManager.signUp(email, password) { success, exception ->
+                    isLoading = false
+                    if (success) {
+                        viewModel.showMessage("Account created successfully", false)
+                        onLoginSuccess()
+                    } else if (exception is FirebaseNetworkException || exception?.message?.contains("network", true) == true) {
+                        viewModel.showMessage("Could not connect to server", true)
+                    } else {
+                        val errorMsg = exception?.message ?: ""
+                        if (errorMsg.contains("email", ignoreCase = true) || errorMsg.contains("format", ignoreCase = true) || errorMsg.contains("empty", ignoreCase = true)) {
+                            errorMessage = "Invalid email"
+                        } else {
+                            errorMessage = "Error: Password should be at least 6 characters long."
+                        }
+                    }
+                }
+            } else {
+                authManager.signIn(email, password) { success, exception ->
+                    isLoading = false
+                    if (success) {
+                        viewModel.showMessage("Logged in successfully", false)
+                        onLoginSuccess()
+                    } else if (exception is FirebaseNetworkException || exception?.message?.contains("network", true) == true) {
+                        viewModel.showMessage("Could not connect to server", true)
+                    } else {
+                        errorMessage = "Invalid e-mail or password"
+                    }
+                }
+            }
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(bgColor)) {
         Column(
@@ -82,7 +129,9 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading,
-                colors = textFieldColors
+                colors = textFieldColors,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -94,51 +143,17 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading,
-                colors = textFieldColors
+                colors = textFieldColors,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { performAuth() })
             )
 
             errorMessage?.let {
                 Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
             }
 
-            // GŁÓWNY PRZYCISK (Solidny prostokąt)
             Button(
-                onClick = {
-                    keyboardController?.hide()
-                    isLoading = true
-                    errorMessage = null
-
-                    if (isRegisterMode) {
-                        authManager.signUp(email, password) { success, exception ->
-                            isLoading = false
-                            if (success) {
-                                viewModel.showMessage("Account created successfully", false)
-                                onLoginSuccess()
-                            } else if (exception is FirebaseNetworkException || exception?.message?.contains("network", true) == true) {
-                                viewModel.showMessage("Could not connect to server", true)
-                            } else {
-                                val errorMsg = exception?.message ?: ""
-                                if (errorMsg.contains("email", ignoreCase = true) || errorMsg.contains("format", ignoreCase = true) || errorMsg.contains("empty", ignoreCase = true)) {
-                                    errorMessage = "Invalid email"
-                                } else {
-                                    errorMessage = "Error: Password should be at least 6 characters long."
-                                }
-                            }
-                        }
-                    } else {
-                        authManager.signIn(email, password) { success, exception ->
-                            isLoading = false
-                            if (success) {
-                                viewModel.showMessage("Logged in successfully", false)
-                                onLoginSuccess()
-                            } else if (exception is FirebaseNetworkException || exception?.message?.contains("network", true) == true) {
-                                viewModel.showMessage("Could not connect to server", true)
-                            } else {
-                                errorMessage = "Invalid e-mail or password"
-                            }
-                        }
-                    }
-                },
+                onClick = performAuth,
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 enabled = !isLoading,
                 shape = RectangleShape,
@@ -147,7 +162,6 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
                 Text(if (isRegisterMode) "Register" else "Log in", color = Color.White)
             }
 
-            // PRZYCISK PRZEŁĄCZANIA / REGISTER (Z obramowaniem i prostokątny)
             OutlinedButton(
                 onClick = {
                     isRegisterMode = !isRegisterMode
@@ -166,7 +180,6 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
             }
         }
 
-        // Animacja ładowania
         if (isLoading) {
             Box(
                 modifier = Modifier
@@ -178,7 +191,6 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
             }
         }
 
-        // Popupy
         AnimatedVisibility(
             visible = popupMessage != null,
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),

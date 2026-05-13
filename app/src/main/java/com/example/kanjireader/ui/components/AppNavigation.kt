@@ -12,7 +12,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kanjireader.R
 import com.example.kanjireader.ViewModel.KanjiViewModel
@@ -31,6 +33,9 @@ fun AppNavigation(
     val scope = rememberCoroutineScope()
     var currentScreen by rememberSaveable { mutableStateOf("extractor") }
 
+    // Gojmini dodawać stan dla popup
+    var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
+
     val popupMessage by viewModel.popupMessage.collectAsState()
 
     BackHandler(enabled = currentScreen != "extractor") {
@@ -39,6 +44,44 @@ fun AppNavigation(
         } else if (currentScreen == "notes") {
             currentScreen = "extractor"
         }
+    }
+
+    // --- LOGOUT CONFIRMATION DIALOG ---
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            containerColor = Color(0xFF1E2433), // Ciemne tło pasujące do pól logowania
+            title = {
+                Text("Logout", color = Color.White, fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text("Are you sure you want to log out?", color = Color.LightGray)
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showLogoutDialog = false
+                        scope.launch {
+                            drawerState.close()
+                            onLogout()
+                        }
+                    },
+                    shape = RectangleShape,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+                ) {
+                    Text("Logout", color = Color.White)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { showLogoutDialog = false },
+                    shape = RectangleShape,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     ModalNavigationDrawer(
@@ -75,16 +118,21 @@ fun AppNavigation(
 
                 Spacer(modifier = Modifier.weight(1f))
 
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp))
+
+                // Gojmini aktualizować styl Logout w sidebarze
                 NavigationDrawerItem(
-                    label = { Text("Log out") },
+                    label = { Text("Log out", fontWeight = FontWeight.Bold) },
                     selected = false,
                     onClick = {
-                        scope.launch {
-                            drawerState.close()
-                            onLogout()
-                        }
+                        showLogoutDialog = true // Pokazywać popup
                     },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                    colors = NavigationDrawerItemDefaults.colors(
+                        unselectedContainerColor = Color(0xFFD32F2F), // Czerwone tło
+                        unselectedTextColor = Color.White,            // Biały napis
+                        unselectedIconColor = Color.White
+                    )
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -109,12 +157,11 @@ fun AppNavigation(
                         }
                     },
                     actions = {
-                        // Gojmini dodawać ikonę tutaj
                         Image(
                             painter = painterResource(id = R.drawable.appicon),
                             contentDescription = "App Icon",
                             modifier = Modifier
-                                .size(60.dp)
+                                .size(40.dp)
                                 .padding(end = 8.dp)
                         )
                     }

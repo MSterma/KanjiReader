@@ -7,8 +7,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -26,6 +26,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        window.navigationBarColor = android.graphics.Color.parseColor("#12151E")
+        WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightNavigationBars = false
+
         val database = Room.databaseBuilder(
             applicationContext,
             KanjiDatabase::class.java,
@@ -44,7 +48,8 @@ class MainActivity : ComponentActivity() {
             userNoteDao = userDatabase.userNoteDao(), authManager=authManager, firestore = firestore)
         setContent {
             KanjiReaderTheme {
-                var isLoggedIn by rememberSaveable { mutableStateOf(authManager.getUserId() != null) }
+                var isLoggedIn by remember { mutableStateOf(authManager.getUserId() != null) }
+
                 val factory = object : ViewModelProvider.Factory {
                     override fun <T : ViewModel> create(modelClass: Class<T>): T {
                         return KanjiViewModel(repository) as T
