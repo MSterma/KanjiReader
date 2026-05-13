@@ -82,6 +82,27 @@ class KanjiViewModel(
         }
     }
 
+    fun clearAllNotes() {
+        viewModelScope.launch {
+            try {
+                repository.clearAllNotes()
+                _userNotes.value = emptyList()
+                _selectedData.value = null
+                showMessage("All notes cleared")
+            } catch (_: Exception) {
+                showMessage("Error clearing notes", true)
+            }
+        }
+    }
+
+    fun clearLocalDataForAccountDeletion() {
+        viewModelScope.launch {
+            repository.clearAllNotes()
+            _userNotes.value = emptyList()
+            _selectedData.value = null
+        }
+    }
+
     fun syncData() {
         viewModelScope.launch {
             try {

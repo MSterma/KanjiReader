@@ -28,4 +28,20 @@ class AuthManager {
     }
 
     fun getUserId(): String? = auth.currentUser?.uid
+
+    fun getCurrentEmail(): String? = auth.currentUser?.email
+
+    fun updatePassword(newPassword: String, onResult: (Boolean, Exception?) -> Unit) {
+        auth.currentUser?.updatePassword(newPassword)
+            ?.addOnCompleteListener { task ->
+                onResult(task.isSuccessful, task.exception)
+            }
+    }
+
+    fun deleteAccount(onResult: (Boolean, Exception?) -> Unit) {
+        auth.currentUser?.delete()
+            ?.addOnCompleteListener { task ->
+                onResult(task.isSuccessful, task.exception)
+            }
+    }
 }

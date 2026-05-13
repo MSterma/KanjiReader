@@ -18,15 +18,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kanjireader.R
 import com.example.kanjireader.ViewModel.KanjiViewModel
+import com.example.kanjireader.data.remote.AuthManager
 import com.example.kanjireader.ui.screen.JapaneseTextExtractor
-import com.example.kanjireader.ui.screen.NotesSearchScreen
 import com.example.kanjireader.ui.screen.KanjiSingleDetailScreen
+import com.example.kanjireader.ui.screen.NotesSearchScreen
+import com.example.kanjireader.ui.screen.SettingsScreen
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
     viewModel: KanjiViewModel,
+    authManager: AuthManager,
     onLogout: () -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -38,24 +41,19 @@ fun AppNavigation(
     val popupMessage by viewModel.popupMessage.collectAsState()
 
     BackHandler(enabled = currentScreen != "extractor") {
-        if (currentScreen == "detail") {
-            currentScreen = "notes"
-        } else if (currentScreen == "notes") {
-            currentScreen = "extractor"
+        when (currentScreen) {
+            "detail" -> currentScreen = "notes"
+            "notes" -> currentScreen = "extractor"
+            "settings" -> currentScreen = "extractor"
         }
     }
 
-    // --- LOGOUT CONFIRMATION DIALOG ---
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
             containerColor = Color(0xFF1E2433),
-            title = {
-                Text("Logout", color = Color.White, fontWeight = FontWeight.Bold)
-            },
-            text = {
-                Text("Are you sure you want to log out?", color = Color.LightGray)
-            },
+            title = { Text("Logout", color = Color.White, fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to log out?", color = Color.LightGray) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -115,16 +113,23 @@ fun AppNavigation(
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
 
-                Spacer(modifier = Modifier.weight(1f))
+                NavigationDrawerItem(
+                    label = { Text("Settings") },
+                    selected = currentScreen == "settings",
+                    onClick = {
+                        currentScreen = "settings"
+                        scope.launch { drawerState.close() }
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
 
+                Spacer(modifier = Modifier.weight(1f))
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp))
 
                 NavigationDrawerItem(
                     label = { Text("Log out", fontWeight = FontWeight.Bold) },
                     selected = false,
-                    onClick = {
-                        showLogoutDialog = true
-                    },
+                    onClick = { showLogoutDialog = true },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                     colors = NavigationDrawerItemDefaults.colors(
                         unselectedContainerColor = Color(0xFFD32F2F),
@@ -145,6 +150,7 @@ fun AppNavigation(
                                 "extractor" -> "Kanji Scanner"
                                 "notes" -> "My notes"
                                 "detail" -> "Kanji details"
+                                "settings" -> "Settings"
                                 else -> "KanjiReader"
                             }
                         )
@@ -159,7 +165,7 @@ fun AppNavigation(
                             painter = painterResource(id = R.drawable.appicon),
                             contentDescription = "App Icon",
                             modifier = Modifier
-                                .size(80.dp)
+                                .size(40.dp)
                                 .padding(end = 8.dp)
                         )
                     }
@@ -176,6 +182,11 @@ fun AppNavigation(
                     "detail" -> KanjiSingleDetailScreen(viewModel) {
                         currentScreen = "notes"
                     }
+                    "settings" -> SettingsScreen(
+                        viewModel = viewModel,
+                        authManager = authManager,
+                        onLogout = onLogout
+                    )
                 }
 
                 AnimatedVisibility(

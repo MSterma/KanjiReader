@@ -65,7 +65,8 @@ class MainActivity : ComponentActivity() {
                             viewModel.logout {
                                 isLoggedIn = false
                             }
-                        }
+                        },
+                        authManager = authManager
                     )
                 } else {
                     LoginScreen(
