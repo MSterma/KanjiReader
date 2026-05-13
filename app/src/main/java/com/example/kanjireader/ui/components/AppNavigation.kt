@@ -33,7 +33,6 @@ fun AppNavigation(
     val scope = rememberCoroutineScope()
     var currentScreen by rememberSaveable { mutableStateOf("extractor") }
 
-    // Gojmini dodawać stan dla popup
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
 
     val popupMessage by viewModel.popupMessage.collectAsState()
@@ -50,7 +49,7 @@ fun AppNavigation(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            containerColor = Color(0xFF1E2433), // Ciemne tło pasujące do pól logowania
+            containerColor = Color(0xFF1E2433),
             title = {
                 Text("Logout", color = Color.White, fontWeight = FontWeight.Bold)
             },
@@ -120,17 +119,16 @@ fun AppNavigation(
 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp))
 
-                // Gojmini aktualizować styl Logout w sidebarze
                 NavigationDrawerItem(
                     label = { Text("Log out", fontWeight = FontWeight.Bold) },
                     selected = false,
                     onClick = {
-                        showLogoutDialog = true // Pokazywać popup
+                        showLogoutDialog = true
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                     colors = NavigationDrawerItemDefaults.colors(
-                        unselectedContainerColor = Color(0xFFD32F2F), // Czerwone tło
-                        unselectedTextColor = Color.White,            // Biały napis
+                        unselectedContainerColor = Color(0xFFD32F2F),
+                        unselectedTextColor = Color.White,
                         unselectedIconColor = Color.White
                     )
                 )
@@ -161,7 +159,7 @@ fun AppNavigation(
                             painter = painterResource(id = R.drawable.appicon),
                             contentDescription = "App Icon",
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(80.dp)
                                 .padding(end = 8.dp)
                         )
                     }
