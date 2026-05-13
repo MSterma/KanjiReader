@@ -51,13 +51,6 @@ class KanjiRepository (
         )
     }
 
-    suspend fun addSentence(character: String, sentence: String) {
-        userNoteDao.insertInitialNote(UserNoteEntity(character, ""))
-        userNoteDao.insertSentence(
-            FoundSentenceEntity(characterOwner = character, sentence = sentence)
-        )
-    }
-
     fun getKanji(tekst: String): List<Char> {
         return tekst.filter { it in '\u4E00'..'\u9FAF' }.toSet().toList()
     }
@@ -79,23 +72,7 @@ class KanjiRepository (
         }
     }
 
-    fun syncFromCloud() {
-        val uid = authManager.getUserId() ?: return
-        firestore.collection("users").document(uid)
-            .collection("kanji_notes").get()
-            .addOnSuccessListener { docs ->
-            }
-    }
-
     suspend fun getAllUserNotes(): List<UserNoteEntity> = userNoteDao.getAllNotes()
-
-    suspend fun searchUserNotes(query: String): List<UserNoteEntity> {
-        if (query.isBlank()) {
-            return userNoteDao.getAllNotes()
-        }
-        val matchingChars = kanjiDao.searchMatchingCharacters(query)
-        return userNoteDao.searchNotesAdvanced(query, matchingChars)
-    }
 
     suspend fun updateNoteWithSentence(character: String, note: String, sentenceToAdd: String?) {
         userNoteDao.insertInitialNote(UserNoteEntity(character, ""))
@@ -124,6 +101,17 @@ class KanjiRepository (
         docRef.set(updates, SetOptions.merge())
     }
 
+    suspend fun deleteNote(character: String) {
+        userNoteDao.deleteSentencesForCharacter(character)
+        userNoteDao.deleteNote(character)
+
+        authManager.getUserId()?.let { uid ->
+            firestore.collection("users").document(uid)
+                .collection("kanji_notes").document(character)
+                .delete()
+        }
+    }
+
     suspend fun syncNotes() {
         val uid = authManager.getUserId() ?: throw Exception("Unauthorized")
 
@@ -135,7 +123,7 @@ class KanjiRepository (
         for (doc in remoteDocs) {
             val char = doc.id
             val remoteNote = doc.getString("note") ?: ""
-            val remoteSentences = doc.get("sentences") as? List<String> ?: emptyList()
+            val remoteSentences = (doc.get("sentences") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
             userNoteDao.insertInitialNote(UserNoteEntity(char, ""))
 
@@ -157,13 +145,13 @@ class KanjiRepository (
         val localList = userNoteDao.getAllNotes()
         for (local in localList) {
             val char = local.character
-            val localNote = local.note ?: ""
+            val localNote = local.note
             val localData = userNoteDao.getNoteWithSentences(char)
             val localSentences = localData?.sentences?.map { it.sentence } ?: emptyList()
 
             val doc = remoteDocs.find { it.id == char }
             val remoteNote = doc?.getString("note") ?: ""
-            val remoteSentences = doc?.get("sentences") as? List<String> ?: emptyList()
+            val remoteSentences = (doc?.get("sentences") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
             val updates = mutableMapOf<String, Any>()
 
