@@ -3,12 +3,12 @@ package com.example.kanjireader.ui.screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.kanjireader.ViewModel.KanjiViewModel
 import com.example.kanjireader.ui.components.*
+import androidx.activity.compose.BackHandler
 
 @Composable
 fun KanjiListDetailScreen(viewModel: KanjiViewModel, wejscieTekst: String) {
@@ -24,9 +24,20 @@ fun KanjiListDetailScreen(viewModel: KanjiViewModel, wejscieTekst: String) {
     val selectedCharacter by viewModel.selectedCharacter.collectAsState()
     val dialogVisible by viewModel.dialogVisible.collectAsState()
 
-    var isEditing by rememberSaveable { mutableStateOf(false) }
+    var isEditing by remember { mutableStateOf(false) }
 
     val currentCharacter = selectedData?.dictionaryInfo?.character?.toString() ?: ""
+
+    BackHandler(enabled = dialogVisible) {
+        if (isEditing) {
+            viewModel.clearTempEditNoteText()
+            viewModel.clearInitializedForCharacter()
+            isEditing = false
+        } else {
+            viewModel.setDialogVisible(false)
+            viewModel.setSelectedCharacter(null)
+        }
+    }
 
     LaunchedEffect(dialogVisible, isEditing, currentCharacter) {
         if (dialogVisible && isEditing && currentCharacter.isNotBlank() && initializedChar != currentCharacter) {
@@ -54,8 +65,14 @@ fun KanjiListDetailScreen(viewModel: KanjiViewModel, wejscieTekst: String) {
 
         if (dialogVisible && selectedData != null) {
             Dialog(onDismissRequest = {
-                viewModel.setDialogVisible(false)
-                viewModel.setSelectedCharacter(null)
+                if (isEditing) {
+                    viewModel.clearTempEditNoteText()
+                    viewModel.clearInitializedForCharacter()
+                    isEditing = false
+                } else {
+                    viewModel.setDialogVisible(false)
+                    viewModel.setSelectedCharacter(null)
+                }
             }) {
                 Surface(
                     shape = MaterialTheme.shapes.medium,
