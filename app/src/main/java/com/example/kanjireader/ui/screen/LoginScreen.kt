@@ -7,9 +7,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -43,6 +45,7 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
     val popupMessage by viewModel.popupMessage.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    val scrollState = rememberScrollState()
 
     val bgColor = Color(0xFF12151E)
     val fieldColor = Color(0xFF1E2433)
@@ -50,7 +53,6 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
     val labelColor = Color.LightGray
     val accentColor = Color(0xFF1D4777)
 
-    // Gojmini wyodrębniać logika autoryzacja
     val performAuth = {
         if (!isLoading) {
             keyboardController?.hide()
@@ -93,15 +95,18 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
 
     Box(modifier = Modifier.fillMaxSize().background(bgColor)) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 painter = painterResource(id = R.drawable.appicon),
                 contentDescription = "App Logo",
                 modifier = Modifier
                     .size(180.dp)
-                    .align(Alignment.CenterHorizontally)
                     .padding(bottom = 24.dp)
             )
 
@@ -154,7 +159,9 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
 
             Button(
                 onClick = performAuth,
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
                 enabled = !isLoading,
                 shape = RectangleShape,
                 colors = ButtonDefaults.buttonColors(containerColor = accentColor)
@@ -167,7 +174,9 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
                     isRegisterMode = !isRegisterMode
                     errorMessage = null
                 },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
                 enabled = !isLoading,
                 shape = RectangleShape,
                 border = BorderStroke(1.dp, accentColor),
@@ -178,6 +187,8 @@ fun LoginScreen(viewModel: KanjiViewModel, authManager: AuthManager, onLoginSucc
             ) {
                 Text(if (isRegisterMode) "Already registered? Log in" else "Register")
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
 
         if (isLoading) {

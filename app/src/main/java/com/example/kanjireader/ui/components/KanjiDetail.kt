@@ -39,7 +39,7 @@ fun KanjiDetail(data: FullKanjiData?, onEditClick: () -> Unit) {
         }
 
         item {
-            Text("Notatka:", style = MaterialTheme.typography.titleMedium)
+            Text("Note:", style = MaterialTheme.typography.titleMedium)
             Text(text = data.userNotes?.userNote?.note ?: "No notes")
             Spacer(modifier = Modifier.height(16.dp))
         }

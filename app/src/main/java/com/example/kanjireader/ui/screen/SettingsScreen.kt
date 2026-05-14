@@ -4,8 +4,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -39,6 +41,7 @@ fun SettingsScreen(
     val email = authManager.getCurrentEmail() ?: "Unknown User"
     val dangerColor = Color(0xFFD32F2F)
     val focusManager = LocalFocusManager.current
+    val scrollState = rememberScrollState()
 
     val attemptPasswordChange = {
         if (newPassword.length >= 6) {
@@ -64,7 +67,7 @@ fun SettingsScreen(
                             isLoading = false
                             if (success) {
                                 viewModel.showMessage("Password changed successfully")
-                                onLogout() // Wylogowanie po sukcesie
+                                onLogout()
                             } else {
                                 viewModel.showMessage("Error: couldn't change password", true)
                             }
@@ -157,7 +160,12 @@ fun SettingsScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(16.dp)
+        ) {
             Text("Settings", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(24.dp))
             Text("User: $email")
@@ -190,7 +198,8 @@ fun SettingsScreen(
                 Text("Update Password", color = Color.White)
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(32.dp))
+
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
             Text("Danger Zone", color = dangerColor, style = MaterialTheme.typography.titleMedium)
@@ -214,6 +223,8 @@ fun SettingsScreen(
             ) {
                 Text("Delete Account")
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
 
         if (isLoading) {
@@ -223,7 +234,6 @@ fun SettingsScreen(
                     .background(Color.Black.copy(alpha = 0.7f))
                     .clickable(enabled = false) { }
             ) {
-                // Zakładając dostępność animacji z LoginScreen
                 ScannerLoadingAnimation(modifier = Modifier.align(Alignment.Center))
             }
         }
