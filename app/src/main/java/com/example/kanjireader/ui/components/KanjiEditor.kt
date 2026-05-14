@@ -15,12 +15,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun KanjiNoteEditor(
-    initialNote: String,
+    noteText: String,
     currentSentence: String,
+    onTextChange: (String) -> Unit,
     onSave: (String, Boolean) -> Unit,
     onCancel: () -> Unit
 ) {
-    var text by rememberSaveable { mutableStateOf(initialNote) }
     var includeSentence by rememberSaveable { mutableStateOf(false) }
 
     Column(
@@ -32,8 +32,8 @@ fun KanjiNoteEditor(
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = text,
-            onValueChange = { text = it },
+            value = noteText,
+            onValueChange = onTextChange,
             modifier = Modifier.fillMaxWidth().height(150.dp),
             label = { Text("Your note") }
         )
@@ -62,7 +62,7 @@ fun KanjiNoteEditor(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Button(
-                onClick = { onSave(text, includeSentence) },
+                onClick = { onSave(noteText, includeSentence) },
                 shape = RectangleShape,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4777))
             ) {

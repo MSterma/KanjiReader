@@ -13,9 +13,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.kanjireader.R
 import com.example.kanjireader.ViewModel.KanjiViewModel
 import com.example.kanjireader.data.remote.AuthManager
@@ -39,6 +42,26 @@ fun AppNavigation(
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
 
     val popupMessage by viewModel.popupMessage.collectAsState()
+
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp
+    val isTablet = screenWidthDp >= 600
+
+    val logoSizeDp = if (isTablet) {
+        (screenWidthDp * 0.12f).coerceAtMost(80f).dp
+    } else {
+        (screenWidthDp * 0.10f).coerceAtMost(56f).dp
+    }
+
+    val menuIconSize = if (isTablet) 48.dp else 32.dp
+    val menuButtonSize = if (isTablet) 56.dp else 48.dp
+    val titleFontSize = if (isTablet) 24.sp else 18.sp
+
+    LaunchedEffect(Unit) {
+        if (drawerState.currentValue != DrawerValue.Closed) {
+            drawerState.close()
+        }
+    }
 
     BackHandler(enabled = currentScreen != "extractor") {
         when (currentScreen) {
@@ -152,12 +175,23 @@ fun AppNavigation(
                                 "detail" -> "Kanji details"
                                 "settings" -> "Settings"
                                 else -> "KanjiReader"
-                            }
+                            },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            fontSize = titleFontSize,
+                            modifier = Modifier.padding(horizontal = 8.dp)
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = null)
+                        IconButton(
+                            onClick = { scope.launch { drawerState.open() } },
+                            modifier = Modifier.size(menuButtonSize)
+                        ) {
+                            Icon(
+                                Icons.Default.Menu,
+                                contentDescription = "Menu",
+                                modifier = Modifier.size(menuIconSize)
+                            )
                         }
                     },
                     actions = {
@@ -165,7 +199,7 @@ fun AppNavigation(
                             painter = painterResource(id = R.drawable.appicon),
                             contentDescription = "App Icon",
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(logoSizeDp)
                                 .padding(end = 8.dp)
                         )
                     }

@@ -19,22 +19,44 @@ fun KanjiListDetailScreen(viewModel: KanjiViewModel, wejscieTekst: String) {
     val charList by viewModel.charList.collectAsState()
     val selectedData by viewModel.selectedData.collectAsState()
     val currentSentence by viewModel.fullText.collectAsState()
+    val tempEditText by viewModel.tempEditNoteText.collectAsState()
+    val initializedChar by viewModel.initializedForCharacter.collectAsState()
+    val selectedCharacter by viewModel.selectedCharacter.collectAsState()
+    val dialogVisible by viewModel.dialogVisible.collectAsState()
 
     var isEditing by rememberSaveable { mutableStateOf(false) }
-    var showDialog by rememberSaveable { mutableStateOf(false) }
+
+    val currentCharacter = selectedData?.dictionaryInfo?.character?.toString() ?: ""
+
+    LaunchedEffect(dialogVisible, isEditing, currentCharacter) {
+        if (dialogVisible && isEditing && currentCharacter.isNotBlank() && initializedChar != currentCharacter) {
+            val currentNote = selectedData?.userNotes?.userNote?.note ?: ""
+            viewModel.updateTempEditNoteText(currentNote)
+            viewModel.markInitializedForCharacter(currentCharacter)
+        }
+    }
+
+    LaunchedEffect(selectedCharacter) {
+        val char = selectedCharacter
+        if (char != null && !dialogVisible) {
+            viewModel.getChar(char)
+            viewModel.setDialogVisible(true)
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         KanjiList(
             lista = charList,
             onClick = {
-                viewModel.getChar(it)
-                isEditing = false
-                showDialog = true
+                viewModel.setSelectedCharacter(it)
             }
         )
 
-        if (showDialog && selectedData != null) {
-            Dialog(onDismissRequest = { showDialog = false }) {
+        if (dialogVisible && selectedData != null) {
+            Dialog(onDismissRequest = {
+                viewModel.setDialogVisible(false)
+                viewModel.setSelectedCharacter(null)
+            }) {
                 Surface(
                     shape = MaterialTheme.shapes.medium,
                     color = MaterialTheme.colorScheme.surface,
@@ -42,18 +64,28 @@ fun KanjiListDetailScreen(viewModel: KanjiViewModel, wejscieTekst: String) {
                 ) {
                     if (isEditing) {
                         KanjiNoteEditor(
-                            initialNote = selectedData?.userNotes?.userNote?.note ?: "",
+                            noteText = tempEditText,
                             currentSentence = currentSentence,
+                            onTextChange = { viewModel.updateTempEditNoteText(it) },
                             onSave = { newNote, includeSentence ->
                                 viewModel.saveNoteWithSentence(
-                                    character = selectedData!!.dictionaryInfo!!.character.toString(),
+                                    character = currentCharacter,
                                     note = newNote,
                                     includeSentence = includeSentence
                                 )
                                 isEditing = false
-                                showDialog = false
+                                viewModel.setDialogVisible(false)
+                                viewModel.setSelectedCharacter(null)
+                                viewModel.clearTempEditNoteText()
+                                viewModel.clearInitializedForCharacter()
                             },
-                            onCancel = { isEditing = false }
+                            onCancel = {
+                                isEditing = false
+                                viewModel.setDialogVisible(false)
+                                viewModel.setSelectedCharacter(null)
+                                viewModel.clearTempEditNoteText()
+                                viewModel.clearInitializedForCharacter()
+                            }
                         )
                     } else {
                         KanjiDetail(

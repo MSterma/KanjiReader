@@ -3,11 +3,7 @@ package com.example.kanjireader
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -21,9 +17,12 @@ import com.example.kanjireader.data.remote.AuthManager
 import com.example.kanjireader.ui.components.AppNavigation
 import com.example.kanjireader.ui.screen.AnimatedSplashScreen
 import com.example.kanjireader.ui.screen.LoginScreen
-import com.example.kanjireader.ui.theme.KanjiReaderTheme
-import com.google.firebase.firestore.FirebaseFirestore
 import com.example.kanjireader.ui.screen.SplashViewModel
+import com.example.kanjireader.ui.theme.KanjiReaderTheme
+import com.example.kanjireader.ui.theme.ThemeViewModel
+import com.example.kanjireader.ui.theme.ThemeViewModelFactory
+import com.google.firebase.firestore.FirebaseFirestore
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,10 +44,22 @@ class MainActivity : ComponentActivity() {
         val firestore = FirebaseFirestore.getInstance()
         val authManager = AuthManager()
 
-        val repository = KanjiRepository(kanjiDao = database.kanjiDao(),
-            userNoteDao = userDatabase.userNoteDao(), authManager=authManager, firestore = firestore)
+        val repository = KanjiRepository(
+            kanjiDao = database.kanjiDao(),
+            userNoteDao = userDatabase.userNoteDao(),
+            authManager = authManager,
+            firestore = firestore
+        )
+
         setContent {
-            KanjiReaderTheme {
+            val themeViewModelFactory = remember { ThemeViewModelFactory(application) }
+            val themeViewModel: ThemeViewModel = viewModel(factory = themeViewModelFactory)
+            val isDarkTheme by themeViewModel.isDarkTheme
+
+            KanjiReaderTheme(
+                darkTheme = isDarkTheme,
+                dynamicColor = true
+            ) {
                 val splashViewModel: SplashViewModel = viewModel()
                 var showSplash by remember { mutableStateOf(!splashViewModel.isSplashCompleted) }
 
@@ -67,14 +78,14 @@ class MainActivity : ComponentActivity() {
                             return KanjiViewModel(repository) as T
                         }
                     }
-                    val viewModel: KanjiViewModel = viewModel(factory = factory)
+                    val kanjiViewModel: KanjiViewModel = viewModel(factory = factory)
 
                     if (isLoggedIn) {
-                        LaunchedEffect(Unit) { viewModel.syncData() }
+                        LaunchedEffect(Unit) { kanjiViewModel.syncData() }
                         AppNavigation(
-                            viewModel = viewModel,
+                            viewModel = kanjiViewModel,
                             onLogout = {
-                                viewModel.logout {
+                                kanjiViewModel.logout {
                                     isLoggedIn = false
                                 }
                             },
@@ -82,7 +93,7 @@ class MainActivity : ComponentActivity() {
                         )
                     } else {
                         LoginScreen(
-                            viewModel = viewModel,
+                            viewModel = kanjiViewModel,
                             authManager = authManager,
                             onLoginSuccess = { isLoggedIn = true }
                         )

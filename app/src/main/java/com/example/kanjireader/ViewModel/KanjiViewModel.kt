@@ -36,6 +36,21 @@ class KanjiViewModel(
     private val _popupMessage = MutableStateFlow<PopupMessage?>(null)
     val popupMessage: StateFlow<PopupMessage?> = _popupMessage.asStateFlow()
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val _tempEditNoteText = MutableStateFlow("")
+    val tempEditNoteText: StateFlow<String> = _tempEditNoteText.asStateFlow()
+
+    private val _initializedForCharacter = MutableStateFlow<String?>(null)
+    val initializedForCharacter: StateFlow<String?> = _initializedForCharacter.asStateFlow()
+
+    private val _selectedCharacter = MutableStateFlow<Char?>(null)
+    val selectedCharacter: StateFlow<Char?> = _selectedCharacter.asStateFlow()
+
+    private val _dialogVisible = MutableStateFlow(false)
+    val dialogVisible: StateFlow<Boolean> = _dialogVisible.asStateFlow()
+
     fun showMessage(text: String, isError: Boolean = false) {
         viewModelScope.launch {
             _popupMessage.value = PopupMessage(text, isError)
@@ -159,5 +174,34 @@ class KanjiViewModel(
             }
             _userNotes.value = filtered
         }
+    }
+
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+        searchNotes(query)
+    }
+
+    fun updateTempEditNoteText(text: String) {
+        _tempEditNoteText.value = text
+    }
+
+    fun clearTempEditNoteText() {
+        _tempEditNoteText.value = ""
+    }
+
+    fun markInitializedForCharacter(character: String) {
+        _initializedForCharacter.value = character
+    }
+
+    fun clearInitializedForCharacter() {
+        _initializedForCharacter.value = null
+    }
+
+    fun setSelectedCharacter(character: Char?) {
+        _selectedCharacter.value = character
+    }
+
+    fun setDialogVisible(visible: Boolean) {
+        _dialogVisible.value = visible
     }
 }

@@ -16,9 +16,21 @@ import com.example.kanjireader.ui.components.KanjiNoteEditor
 fun KanjiSingleDetailScreen(viewModel: KanjiViewModel, onBackClick: () -> Unit) {
     val selectedData by viewModel.selectedData.collectAsState()
     var isEditing by rememberSaveable { mutableStateOf(false) }
+    val tempEditText by viewModel.tempEditNoteText.collectAsState()
+    val initializedChar by viewModel.initializedForCharacter.collectAsState()
 
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    val currentCharacter = selectedData?.dictionaryInfo?.character?.toString() ?: ""
+
+    LaunchedEffect(isEditing, currentCharacter) {
+        if (isEditing && currentCharacter.isNotBlank() && initializedChar != currentCharacter) {
+            val currentNote = selectedData?.userNotes?.userNote?.note ?: ""
+            viewModel.updateTempEditNoteText(currentNote)
+            viewModel.markInitializedForCharacter(currentCharacter)
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (isLandscape) {
@@ -32,17 +44,24 @@ fun KanjiSingleDetailScreen(viewModel: KanjiViewModel, onBackClick: () -> Unit) 
                 if (isEditing && selectedData != null) {
                     Box(modifier = Modifier.weight(1f)) {
                         KanjiNoteEditor(
-                            initialNote = selectedData?.userNotes?.userNote?.note ?: "",
+                            noteText = tempEditText,
                             currentSentence = "",
+                            onTextChange = { viewModel.updateTempEditNoteText(it) },
                             onSave = { newNote, _ ->
                                 viewModel.saveNoteWithSentence(
-                                    character = selectedData!!.dictionaryInfo!!.character.toString(),
+                                    character = currentCharacter,
                                     note = newNote,
                                     includeSentence = false
                                 )
                                 isEditing = false
+                                viewModel.clearTempEditNoteText()
+                                viewModel.clearInitializedForCharacter()
                             },
-                            onCancel = { isEditing = false }
+                            onCancel = {
+                                isEditing = false
+                                viewModel.clearTempEditNoteText()
+                                viewModel.clearInitializedForCharacter()
+                            }
                         )
                     }
                 }
@@ -51,17 +70,24 @@ fun KanjiSingleDetailScreen(viewModel: KanjiViewModel, onBackClick: () -> Unit) 
             Box(modifier = Modifier.weight(1f)) {
                 if (isEditing && selectedData != null) {
                     KanjiNoteEditor(
-                        initialNote = selectedData?.userNotes?.userNote?.note ?: "",
+                        noteText = tempEditText,
                         currentSentence = "",
+                        onTextChange = { viewModel.updateTempEditNoteText(it) },
                         onSave = { newNote, _ ->
                             viewModel.saveNoteWithSentence(
-                                character = selectedData!!.dictionaryInfo!!.character.toString(),
+                                character = currentCharacter,
                                 note = newNote,
                                 includeSentence = false
                             )
                             isEditing = false
+                            viewModel.clearTempEditNoteText()
+                            viewModel.clearInitializedForCharacter()
                         },
-                        onCancel = { isEditing = false }
+                        onCancel = {
+                            isEditing = false
+                            viewModel.clearTempEditNoteText()
+                            viewModel.clearInitializedForCharacter()
+                        }
                     )
                 } else {
                     KanjiDetail(

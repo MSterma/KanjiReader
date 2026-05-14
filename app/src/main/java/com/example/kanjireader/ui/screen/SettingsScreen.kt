@@ -15,14 +15,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kanjireader.ViewModel.KanjiViewModel
 import com.example.kanjireader.data.remote.AuthManager
+import com.example.kanjireader.ui.theme.ThemePreferences
+import com.example.kanjireader.ui.theme.ThemeViewModel
+import com.example.kanjireader.ui.theme.ThemeViewModelFactory
 
 @Composable
 fun SettingsScreen(
@@ -30,6 +35,11 @@ fun SettingsScreen(
     authManager: AuthManager,
     onLogout: () -> Unit
 ) {
+    val context = LocalContext.current
+    val themeViewModelFactory = remember { ThemeViewModelFactory(context.applicationContext as android.app.Application) }
+    val themeViewModel: ThemeViewModel = viewModel(factory = themeViewModelFactory)
+    val currentMode by themeViewModel.currentMode
+
     var newPassword by rememberSaveable { mutableStateOf("") }
     var showPassword by rememberSaveable { mutableStateOf(false) }
     var isLoading by rememberSaveable { mutableStateOf(false) }
@@ -169,6 +179,32 @@ fun SettingsScreen(
             Text("Settings", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(24.dp))
             Text("User: $email")
+
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Theme", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = currentMode == ThemePreferences.ThemeMode.LIGHT,
+                    onClick = { themeViewModel.setThemeMode(ThemePreferences.ThemeMode.LIGHT) }
+                )
+                Text("Light", modifier = Modifier.padding(start = 8.dp))
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = currentMode == ThemePreferences.ThemeMode.DARK,
+                    onClick = { themeViewModel.setThemeMode(ThemePreferences.ThemeMode.DARK) }
+                )
+                Text("Dark", modifier = Modifier.padding(start = 8.dp))
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = currentMode == ThemePreferences.ThemeMode.AUTO,
+                    onClick = { themeViewModel.setThemeMode(ThemePreferences.ThemeMode.AUTO) }
+                )
+                Text("Auto (light sensor)", modifier = Modifier.padding(start = 8.dp))
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
             Text("New Password", style = MaterialTheme.typography.titleMedium)
