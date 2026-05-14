@@ -112,6 +112,20 @@ class KanjiRepository (
         }
     }
 
+    suspend fun clearAllNotes() {
+        userNoteDao.clearAllSentences()
+        userNoteDao.clearAllNotes()
+
+        val uid = authManager.getUserId() ?: return
+        try {
+            val docs = firestore.collection("users").document(uid)
+                .collection("kanji_notes").get().await()
+            for (doc in docs.documents) {
+                doc.reference.delete()
+            }
+        } catch (_: Exception) {}
+    }
+
     suspend fun syncNotes() {
         val uid = authManager.getUserId() ?: throw Exception("Unauthorized")
 
@@ -145,7 +159,7 @@ class KanjiRepository (
         val localList = userNoteDao.getAllNotes()
         for (local in localList) {
             val char = local.character
-            val localNote = local.note
+            val localNote = local.note ?: ""
             val localData = userNoteDao.getNoteWithSentences(char)
             val localSentences = localData?.sentences?.map { it.sentence } ?: emptyList()
 
